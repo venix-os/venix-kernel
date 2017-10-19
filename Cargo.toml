@@ -1,0 +1,10 @@
+[package]
+name = "ecs_kernel"
+version = "0.1.0"
+authors = ["Connor Wood <cwoodd@essex.ac.uk>"]
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+rlibc = "1.0"
