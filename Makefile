@@ -23,7 +23,7 @@ $(kernel): $(rust_os) $(asm_object_files) $(linker_script)
 	@ld -n --gc-sections -T $(linker_script) -o $(kernel) $(asm_object_files) $(rust_os)
 
 $(rust_os): $(rust_source_files)
-	@xargo build --target $(target)
+	@RUST_TARGET_PATH=$(shell pwd) xargo build --target $(target)
 
 build/%.o: src/%.asm
 	@mkdir -p $(shell dirname $@)
