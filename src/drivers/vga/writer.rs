@@ -96,3 +96,57 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    extern crate array_init;
+    
+    use super::*;
+    use super::super::colours::Colour;
+    use volatile::Volatile;
+
+    fn construct_writer() -> Writer {
+        use std::boxed::Box;
+
+        let buffer = construct_buffer();
+        Writer::new(ColourCode::new(Colour::Blue, Colour::Magenta, false), Box::leak(Box::new(buffer)))
+    }
+
+    fn construct_buffer() -> Buffer {
+        use self::array_init::array_init;
+        
+        Buffer {
+            chars: array_init(|_| array_init(|_| Volatile::new(empty_char()))),
+        }
+    }
+
+    fn empty_char() -> ScreenChar {
+        ScreenChar {
+            ascii_character: b' ',
+            colour_code: ColourCode::new(Colour::Blue, Colour::Magenta, false),
+            // Must be the same colour, because Writer clears the screen on initialisation
+        }
+    }
+
+    #[test]
+    fn test_write_byte() {
+        let mut writer = construct_writer();
+        writer.write_byte(b'X');
+        writer.write_byte(b'Y');
+
+        for (i, row) in writer.buffer.chars.iter().enumerate() {
+            for (j, screen_char) in row.iter().enumerate() {
+                let screen_char = screen_char.read();
+                if i == 0 && j == 0 {
+                    assert_eq!(screen_char.ascii_character, b'X');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i == 0 && j == 1 {
+                    assert_eq!(screen_char.ascii_character, b'Y');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else {
+                    assert_eq!(screen_char, empty_char());
+                }
+            }
+        }
+    }
+}
