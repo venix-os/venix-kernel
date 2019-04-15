@@ -1,8 +1,11 @@
-#![no_std]
+#![cfg_attr(not(test), no_std)]
+#![cfg_attr(test, allow(unused_imports))]
+
+#[cfg(test)]
+extern crate core;
 
 use core::panic::PanicInfo;
 
-extern crate rlibc;
 extern crate spin;
 extern crate lazy_static;
 extern crate volatile;
@@ -11,11 +14,12 @@ extern crate volatile;
 mod vga_buffer;
 
 #[no_mangle]
-pub extern fn rust_main() {
+pub extern fn rust_main() -> ! {
     println!("Hello World!");
     loop { }
 }
 
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);

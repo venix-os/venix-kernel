@@ -11,13 +11,16 @@ rust_source_files := $(wildcard src/*.rs)
 
 rust_os := target/$(target)/debug/libecs_kernel.a
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all: $(kernel)
 
 clean:
 	-@cargo clean
 	-@rm -r build
+
+test: $(rust_source_files)
+	@cargo test
 
 $(kernel): $(rust_os) $(asm_object_files) $(linker_script)
 	@ld -n --gc-sections -T $(linker_script) -o $(kernel) $(asm_object_files) $(rust_os)
