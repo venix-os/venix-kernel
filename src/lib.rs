@@ -11,7 +11,7 @@ extern crate lazy_static;
 extern crate volatile;
 
 #[macro_use]
-mod vga_buffer;
+mod drivers;
 
 #[no_mangle]
 pub extern fn rust_main() -> ! {
