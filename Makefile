@@ -1,5 +1,5 @@
 arch ?= x86_64
-target ?= $(arch)-ecs_kernel
+target ?= $(arch)-venix_kernel
 kernel := build/kernel-$(arch)
 
 linker_script := linker.ld
@@ -23,7 +23,7 @@ $(kernel): $(rust_os) $(asm_object_files) $(linker_script)
 	@ld -n --gc-sections -T $(linker_script) -o $(kernel) $(asm_object_files) $(rust_os)
 
 $(rust_os): $(rust_source_files)
-	@xargo build --target $(target)
+	@cargo xbuild --target $(target).json
 
 build/%.o: src/%.asm
 	@mkdir -p $(shell dirname $@)
