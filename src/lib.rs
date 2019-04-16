@@ -16,6 +16,7 @@ mod drivers;
 #[no_mangle]
 pub extern fn rust_main() -> ! {
     println!("Hello World!");
+    println!("This should be on line 2");
     loop { }
 }
 

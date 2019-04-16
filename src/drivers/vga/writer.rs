@@ -44,6 +44,7 @@ impl Writer {
 
     fn new_line(&mut self) {
         self.row_position += 1;
+        self.column_position = 0;
 
         if self.row_position >= BUFFER_HEIGHT {
             for row in 1..BUFFER_HEIGHT {
@@ -142,6 +143,98 @@ mod test {
                     assert_eq!(screen_char.colour_code, writer.colour_code);
                 } else if i == 0 && j == 1 {
                     assert_eq!(screen_char.ascii_character, b'Y');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else {
+                    assert_eq!(screen_char, empty_char());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_write_formatted() {
+        use core::fmt::Write;
+
+        let mut writer = construct_writer();
+        writeln!(&mut writer, "a").unwrap();
+        writeln!(&mut writer, "b{}", "c").unwrap();
+
+        for (i, row) in writer.buffer.chars.iter().enumerate() {
+            for (j, screen_char) in row.iter().enumerate() {
+                let screen_char = screen_char.read();
+                if i == 0 && j == 0 {
+                    assert_eq!(screen_char.ascii_character, b'a');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i == 1 && j == 0 {
+                    assert_eq!(screen_char.ascii_character, b'b');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i == 1 && j == 1 {
+                    assert_eq!(screen_char.ascii_character, b'c');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i >= 1 {
+                    assert_eq!(screen_char.ascii_character, b' ');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else {
+                    assert_eq!(screen_char, empty_char());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_screen_cleared_on_writer_init() {
+        use std::boxed::Box;
+
+        let mut buffer = construct_buffer();
+        buffer.chars[0][0].write(ScreenChar {
+            ascii_character: b'%',
+            colour_code: ColourCode::new(Colour::Brown, Colour::Green, true),
+        });
+                                                 
+        let w = Writer::new(ColourCode::new(Colour::Blue, Colour::Magenta, false), Box::leak(Box::new(buffer)));
+        assert_eq!(w.buffer.chars[0][0].read().ascii_character, b' ');
+        assert_eq!(w.buffer.chars[0][0].read().colour_code, w.colour_code);
+    }
+
+    #[test]
+    fn test_clear_screen() {
+        use core::fmt::Write;
+
+        let mut writer = construct_writer();
+        writeln!(&mut writer, "a").unwrap();
+        writeln!(&mut writer, "b{}", "c").unwrap();
+        writer.clear_screen();
+
+        for row in writer.buffer.chars.iter() {
+            for screen_char in row.iter() {
+                let screen_char = screen_char.read();
+                assert_eq!(screen_char.ascii_character, b' ');
+                assert_eq!(screen_char.colour_code, writer.colour_code);
+            }
+        }
+    }
+
+    #[test]
+    fn test_write_with_newline() {
+        use core::fmt::Write;
+
+        let mut writer = construct_writer();
+        writeln!(&mut writer, "a\nbc").unwrap();
+
+        for (i, row) in writer.buffer.chars.iter().enumerate() {
+            for (j, screen_char) in row.iter().enumerate() {
+                let screen_char = screen_char.read();
+                if i == 0 && j == 0 {
+                    assert_eq!(screen_char.ascii_character, b'a');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i == 1 && j == 0 {
+                    assert_eq!(screen_char.ascii_character, b'b');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i == 1 && j == 1 {
+                    assert_eq!(screen_char.ascii_character, b'c');
+                    assert_eq!(screen_char.colour_code, writer.colour_code);
+                } else if i >= 1 {
+                    assert_eq!(screen_char.ascii_character, b' ');
                     assert_eq!(screen_char.colour_code, writer.colour_code);
                 } else {
                     assert_eq!(screen_char, empty_char());
